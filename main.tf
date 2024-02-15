@@ -17,8 +17,10 @@ resource "google_compute_subnetwork" "db" {
 }
 
 resource "google_compute_route" "default" {
-  name             = "default-route"
-  network          = google_compute_network.vpc.name
-  dest_range       = "0.0.0.0/0"
-  next_hop_gateway = google_compute_network.vpc.gateway_ipv4
+  name              = "default-route"
+  network           = google_compute_network.vpc.name
+  dest_range        = "0.0.0.0/0"
+  next_hop_gateway  = "default-internet-gateway"
+  priority          = 100
+  tags              = ["webapp"]
 }
