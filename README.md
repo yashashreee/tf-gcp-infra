@@ -2,6 +2,12 @@
 
 This repository contains Terraform configuration for setting up Google Cloud Platform networking.
 
+## GCP Service APIs
+
+Enable following APIs in GCP:
+- IAM Service Account Credentials API
+- Compute Engine API 
+
 ## Usage
 
 - Ensure you have the necessary credentials and variables set.
