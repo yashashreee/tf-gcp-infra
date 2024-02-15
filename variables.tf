@@ -14,6 +14,10 @@ variable "tf_service_account" {
   description = "The service account to be used for Terraform."
 }
 
+variable "gcp_key_path" {
+  description = "Path to GCP key."
+}
+
 variable "network_name" {
   description = "VPC network name for respective environment."
 }
