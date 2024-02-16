@@ -20,10 +20,12 @@ jobs:
         id: fmt
         run: terraform fmt -check
 
-      - name: Set up Google Cloud credentials
-        run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > /tmp/credentials.json
+      - name: Set up Google Cloud Credentials
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS" > "$HOME"/gcp-key.json
+          gcloud auth activate-service-account --key-file="$HOME"/gcp-key.json
       
       - name: Terraform Init
         id: init
