@@ -6,6 +6,10 @@ variable "region" {
   description = "The Google Cloud region."
 }
 
+variable "routing_mode" {
+  description = "VPC routing mode."
+}
+
 variable "zone" {
   description = "The Google Cloud zone."
 }
