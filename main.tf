@@ -8,7 +8,7 @@ resource "google_compute_subnetwork" "webapp" {
   name          = "webapp"
   ip_cidr_range = var.webapp_address
   network       = google_compute_network.vpc.self_link
-}
+
 
 resource "google_compute_subnetwork" "db" {
   name          = "db"
