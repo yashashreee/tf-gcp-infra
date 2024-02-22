@@ -12,8 +12,7 @@ Enable following APIs in GCP:
 
 - Ensure you have the necessary credentials and variables set.
 - Run `terraform init` to initialize your Terraform environment.
-- Run `terraform apply -var-file=terraform.tfvars -var-file=environments/demo/terraform.tfvars` to apply the configuration for demo environment.
-- Run `terraform apply -var-file=terraform.tfvars -var-file=environments/dev/terraform.tfvars` to apply the configuration for dev environment.
+- Run `terraform apply -var-file=terraform.tfvars` to apply the configuration
 
 ## Structure
 

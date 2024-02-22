@@ -14,7 +14,7 @@ variable "routing_mode" {
 
 variable "zone" {
   description = "The Google Cloud zone."
-  default     = "us-east1"
+  default     = "us-east1-b"
 }
 
 variable "tf_service_account" {
@@ -49,9 +49,13 @@ variable "instance_name" {
 }
 
 variable "machine_type" {
-  default = "n2-standard-2"
+  default = "e2-standard-2"
 }
 
 variable "firewall" {
   default = "webapp-firewall"
+}
+
+variable "custom_image" {
+  default = "csye6225-custom-image"
 }

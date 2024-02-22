@@ -30,12 +30,12 @@ resource "google_compute_firewall" "allow_ssh" {
   name    = var.firewall
   network = google_compute_network.webapp-vpc.self_link
 
-  allow {
+  deny {
     protocol = "tcp"
     ports    = ["22"]
   }
 
-  source_ranges = [var.webapp_address, var.db_address]
+  source_ranges = ["0.0.0.0/0"]
   target_tags   = ["webapp-vpc-instance"]
 }
 
@@ -48,7 +48,7 @@ resource "google_compute_instance" "default" {
 
   boot_disk {
     initialize_params {
-      image = "projects/$var.project_id/global/images/custom-image"
+      image = "projects/${var.project_id}/global/images/${var.custom_image}"
       size  = 100
       type  = "pd-balanced"
     }
