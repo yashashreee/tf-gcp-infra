@@ -23,7 +23,7 @@ resource "google_compute_route" "default" {
   dest_range       = "0.0.0.0/0"
   next_hop_gateway = "default-internet-gateway"
   priority         = 100
-  tags = ["webapp-route"]
+  tags             = ["webapp-route"]
 }
 
 resource "google_compute_firewall" "allow-webapp" {
@@ -37,7 +37,7 @@ resource "google_compute_firewall" "allow-webapp" {
 
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["webapp-vpc-instance", "http-server", "https-server", "webapp-route"]
-  priority = 1001
+  priority      = 1001
 }
 
 resource "google_compute_instance" "default" {
