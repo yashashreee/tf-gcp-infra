@@ -52,10 +52,18 @@ variable "machine_type" {
   default = "e2-standard-2"
 }
 
-variable "firewall" {
-  default = "webapp-firewall"
+variable "firewall_allow" {
+  default = "allow-webapp"
+}
+
+variable "firewall_deny" {
+  default = "deny-ssh"
 }
 
 variable "custom_image" {
   default = "csye6225-custom-image"
+}
+
+variable "app_port" {
+  description = "Webapp PORT"
 }
