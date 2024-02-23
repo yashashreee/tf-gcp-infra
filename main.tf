@@ -23,24 +23,23 @@ resource "google_compute_route" "default" {
   dest_range       = "0.0.0.0/0"
   next_hop_gateway = "default-internet-gateway"
   priority         = 100
+  tags = ["webapp-route"]
 }
 
-# Create Firewall Rule
-resource "google_compute_firewall" "allow_ssh" {
-  name    = var.firewall
+resource "google_compute_firewall" "allow-webapp" {
+  name    = var.firewall_allow
   network = google_compute_network.webapp-vpc.self_link
 
-  deny {
+  allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", var.app_port]
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["webapp-vpc-instance"]
+  target_tags   = ["webapp-vpc-instance", "http-server", "https-server", "webapp-route"]
+  priority = 1001
 }
 
-
-# Create Compute Engine Instance
 resource "google_compute_instance" "default" {
   name         = var.instance_name
   machine_type = var.machine_type
@@ -55,8 +54,10 @@ resource "google_compute_instance" "default" {
   }
 
   network_interface {
+    network    = google_compute_network.webapp-vpc.self_link
     subnetwork = google_compute_subnetwork.webapp.self_link
+    access_config {}
   }
 
-  tags = ["webapp-vpc-instance"]
+  tags = ["webapp-vpc-instance", "http-server", "https-server"]
 }
