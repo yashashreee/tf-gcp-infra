@@ -52,12 +52,16 @@ variable "machine_type" {
   default = "e2-standard-2"
 }
 
-variable "firewall_allow" {
-  default = "allow-webapp"
+variable "allow_webapp_to_internet_name" {
+  default = "allow-webapp-to-internet"
 }
 
-variable "firewall_deny" {
-  default = "deny-ssh"
+variable "deny_ssh_to_internet_name" {
+  default = "deny-ssh-to-internet"
+}
+
+variable "allow_sql_to_db_subnet_name" {
+  default = "allow-sql-to-db-subnet"
 }
 
 variable "custom_image" {
@@ -66,4 +70,36 @@ variable "custom_image" {
 
 variable "app_port" {
   description = "Webapp PORT"
+}
+
+variable "global_address_name" {
+  default = "webapp-global-connect-ip"
+}
+
+variable "global_address_type" {
+  default = "INTERNAL"
+}
+
+variable "global_forwarding_rule_name" {
+  default = "webapp-globalrule"
+}
+
+variable "sql_instance_name" {
+  default = "webapp-cloudsql-instance"
+}
+
+variable "db_version" {
+  default = "MYSQL_8_0"
+}
+
+variable "sql_database_instance_name" {
+  default = "webapp-db"
+}
+
+variable "sql_instance_user_name" {
+  default = "webapp-db-user"
+}
+
+variable "sql_db_instance_firwall_name" {
+  default = "deny-internet-to-sql-db-instance"
 }
