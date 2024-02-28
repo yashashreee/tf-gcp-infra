@@ -1,69 +1,129 @@
 variable "project_id" {
   description = "The Google Cloud project ID."
+  type        = string
 }
 
 variable "region" {
   description = "The Google Cloud region."
-  default     = "us-east1"
+  type        = string
 }
 
 variable "routing_mode" {
   description = "VPC routing mode."
-  default     = "REGIONAL"
+  type        = string
 }
 
 variable "zone" {
   description = "The Google Cloud zone."
-  default     = "us-east1-b"
-}
-
-variable "tf_service_account" {
-  description = "The service account to be used for Terraform."
-}
-
-variable "gcp_key_path" {
-  description = "Path to GCP key."
-}
-
-variable "network_name" {
-  description = "VPC network name for respective environment."
-  default     = "dev-netowrk"
-}
-
-variable "webapp_address" {
-  description = "Routing address for webapp subnet."
-  default     = "10.0.1.0/24"
-}
-
-variable "db_address" {
-  description = "Routing address for db subnet."
-  default     = "10.0.2.0/24"
-}
-
-variable "route_name" {
-  default = "webapp-route"
-}
-
-variable "instance_name" {
-  default = "webapp-vpc-instance"
-}
-
-variable "machine_type" {
-  default = "e2-standard-2"
-}
-
-variable "firewall_allow" {
-  default = "allow-webapp"
-}
-
-variable "firewall_deny" {
-  default = "deny-ssh"
-}
-
-variable "custom_image" {
-  default = "csye6225-custom-image"
+  type        = string
 }
 
 variable "app_port" {
   description = "Webapp PORT"
+  type        = string
+}
+
+variable "tf_service_account" {
+  description = "The service account to be used for Terraform."
+  type        = string
+}
+
+variable "gcp_key_path" {
+  description = "Path to GCP key."
+  type        = string
+}
+
+variable "network_name" {
+  description = "VPC network name for respective environment."
+  type        = string
+}
+
+variable "webapp_address" {
+  description = "Routing address for webapp subnet."
+  type        = string
+}
+
+variable "db_address" {
+  description = "Routing address for db subnet."
+  type        = string
+}
+
+variable "route_name" {
+  description = "Name of the routing table."
+  type        = string
+}
+
+variable "instance_name" {
+  description = "Name of the virtual machine instance."
+  type        = string
+}
+
+variable "machine_type" {
+  description = "Machine type for the virtual machine."
+  type        = string
+}
+
+variable "allow_webapp_to_internet_name" {
+  description = "Name of the firewall rule allowing webapp to the internet."
+  type        = string
+}
+
+variable "deny_ssh_to_internet_name" {
+  description = "Name of the firewall rule denying SSH to the internet."
+  type        = string
+}
+
+variable "allow_sql_to_db_subnet_name" {
+  description = "Name of the firewall rule allowing SQL to the DB subnet."
+  type        = string
+}
+
+variable "custom_image" {
+  description = "Name of the custom image."
+  type        = string
+}
+
+variable "global_address_name" {
+  description = "Name of the global IP address for webapp."
+  type        = string
+}
+
+variable "global_address_type" {
+  description = "Type of the global IP address (INTERNAL or EXTERNAL)."
+  type        = string
+}
+
+variable "global_address_ip" {
+  description = "Global IP address"
+  type        = string
+}
+
+variable "global_forwarding_rule_name" {
+  description = "Name of the global forwarding rule for webapp."
+  type        = string
+}
+
+variable "sql_instance_name" {
+  description = "Name of the Cloud SQL instance for the webapp database."
+  type        = string
+}
+
+variable "db_version" {
+  description = "Version of the database (e.g., MYSQL_8_0)."
+  type        = string
+}
+
+variable "sql_database_name" {
+  description = "Name of the database instance in Cloud SQL."
+  type        = string
+}
+
+variable "sql_instance_user_name" {
+  description = "Name of the user for the Cloud SQL instance."
+  type        = string
+}
+
+variable "sql_db_instance_firwall_name" {
+  description = "Name of the firewall rule denying internet access to the SQL DB instance."
+  type        = string
 }

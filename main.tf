@@ -6,13 +6,16 @@ resource "google_compute_network" "webapp-vpc" {
 }
 
 resource "google_compute_subnetwork" "webapp" {
-  name          = "webapp"
-  ip_cidr_range = var.webapp_address
-  network       = google_compute_network.webapp-vpc.self_link
+  name                     = "webapp"
+  region                   = var.region
+  ip_cidr_range            = var.webapp_address
+  network                  = google_compute_network.webapp-vpc.self_link
+  private_ip_google_access = true
 }
 
 resource "google_compute_subnetwork" "db" {
   name          = "db"
+  region        = var.region
   ip_cidr_range = var.db_address
   network       = google_compute_network.webapp-vpc.self_link
 }
@@ -25,32 +28,71 @@ resource "google_compute_route" "default" {
   priority         = 100
 }
 
-resource "google_compute_firewall" "allow-webapp" {
-  name    = var.firewall_allow
-  network = google_compute_network.webapp-vpc.self_link
-
-  allow {
-    protocol = "tcp"
-    ports    = [var.app_port]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["webapp-vpc-instance", "http-server", "https-server"]
-  priority      = 1001
+resource "google_compute_global_address" "webapp-private-ip-alloc" {
+  name          = var.global_address_name
+  address_type  = var.global_address_type
+  purpose       = "VPC_PEERING"
+  prefix_length = 24
+  network       = google_compute_network.webapp-vpc.self_link
 }
 
-resource "google_compute_firewall" "deny_ssh" {
-  name    = var.firewall_deny
-  network = google_compute_network.webapp-vpc.self_link
+# resource "google_compute_global_forwarding_rule" "default" {
+#   project               = var.project_id
+#   name                  = var.global_forwarding_rule_name
+#   target                = "all-apis"
+#   network               = google_compute_network.webapp-vpc.self_link
+#   ip_address            = google_compute_global_address.webapp-private-ip-alloc.id
+#   load_balancing_scheme = ""
+# }
 
-  deny {
-    protocol = "tcp"
-    ports    = ["22"]
+resource "google_service_networking_connection" "webapp-vpc-private-connection" {
+  network                 = google_compute_network.webapp-vpc.self_link
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.webapp-private-ip-alloc.name]
+}
+
+resource "google_sql_database_instance" "webapp-cloudsql-instance" {
+  name                = var.sql_instance_name
+  database_version    = var.db_version
+  region              = var.region
+  deletion_protection = false
+  depends_on          = [google_service_networking_connection.webapp-vpc-private-connection]
+
+  settings {
+    tier = "db-f1-micro"
+    ip_configuration {
+      ipv4_enabled                                  = false
+      private_network                               = google_compute_network.webapp-vpc.self_link
+      enable_private_path_for_google_cloud_services = true
+    }
+    disk_type         = "PD_SSD"
+    disk_size         = 100
+    disk_autoresize   = true
+    availability_type = "REGIONAL"
+
+    backup_configuration {
+      binary_log_enabled = true
+      enabled            = true
+    }
   }
+}
 
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["webapp-vpc-instance"]
-  priority      = 1000
+resource "google_sql_database" "webapp-db" {
+  name            = var.sql_database_name
+  instance        = google_sql_database_instance.webapp-cloudsql-instance.name
+  deletion_policy = "ABANDON"
+}
+
+resource "google_sql_user" "webapp-db-user" {
+  name     = var.sql_instance_user_name
+  instance = google_sql_database_instance.webapp-cloudsql-instance.name
+  password = random_password.webapp-db-password.result
+}
+
+resource "random_password" "webapp-db-password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
 }
 
 resource "google_compute_instance" "default" {
@@ -71,6 +113,14 @@ resource "google_compute_instance" "default" {
     subnetwork = google_compute_subnetwork.webapp.self_link
     access_config {}
   }
+  metadata = {
+    db_user = google_sql_user.webapp-db-user.name
+    db_pass = google_sql_user.webapp-db-user.password
+    db_host = google_sql_database_instance.webapp-cloudsql-instance.private_ip_address
+    db_name = google_sql_database.webapp-db.name
+  }
+
+  metadata_startup_script = file("./startup.sh")
 
   tags = ["webapp-vpc-instance", "http-server", "https-server"]
 }
