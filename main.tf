@@ -113,6 +113,7 @@ resource "google_compute_instance" "default" {
     subnetwork = google_compute_subnetwork.webapp.self_link
     access_config {}
   }
+  
   metadata = {
     db_user = google_sql_user.webapp-db-user.name
     db_pass = google_sql_user.webapp-db-user.password

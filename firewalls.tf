@@ -18,7 +18,7 @@ resource "google_compute_firewall" "deny-ssh-to-internet" {
   project = var.project_id
   network = google_compute_network.webapp-vpc.self_link
 
-  allow {
+  deny {
     protocol = "tcp"
     ports    = ["22"]
   }
