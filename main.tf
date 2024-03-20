@@ -36,15 +36,6 @@ resource "google_compute_global_address" "webapp-private-ip-alloc" {
   network       = google_compute_network.webapp-vpc.self_link
 }
 
-# resource "google_compute_global_forwarding_rule" "default" {
-#   project               = var.project_id
-#   name                  = var.global_forwarding_rule_name
-#   target                = "all-apis"
-#   network               = google_compute_network.webapp-vpc.self_link
-#   ip_address            = google_compute_global_address.webapp-private-ip-alloc.id
-#   load_balancing_scheme = ""
-# }
-
 resource "google_service_networking_connection" "webapp-vpc-private-connection" {
   network                 = google_compute_network.webapp-vpc.self_link
   service                 = "servicenetworking.googleapis.com"
@@ -95,7 +86,30 @@ resource "random_password" "webapp-db-password" {
   override_special = "_%@"
 }
 
-resource "google_compute_instance" "default" {
+resource "google_service_account" "vm_service_account" {
+  account_id   = var.vm_service_account_id
+  display_name = var.vm_service_account_name
+}
+
+resource "google_project_iam_binding" "service_account_roles" {
+  project = var.project_id
+  role    = "roles/logging.admin"
+
+  members = [
+    "serviceAccount:${google_service_account.vm_service_account.email}"
+  ]
+}
+
+resource "google_project_iam_binding" "service_account_roles_metric_writer" {
+  project = var.project_id
+  role    = "roles/monitoring.metricWriter"
+
+  members = [
+    "serviceAccount:${google_service_account.vm_service_account.email}"
+  ]
+}
+
+resource "google_compute_instance" "webapp-vpc-instance" {
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
@@ -114,6 +128,11 @@ resource "google_compute_instance" "default" {
     access_config {}
   }
 
+  service_account {
+    email  = google_service_account.vm_service_account.email
+    scopes = ["cloud-platform"]
+  }
+
   metadata = {
     db_user = google_sql_user.webapp-db-user.name
     db_pass = google_sql_user.webapp-db-user.password
@@ -124,4 +143,12 @@ resource "google_compute_instance" "default" {
   metadata_startup_script = file("./startup.sh")
 
   tags = ["webapp-vpc-instance", "http-server", "https-server"]
+}
+
+resource "google_dns_record_set" "webapp-dns-record" {
+  name         = var.domain_name
+  type         = "A"
+  ttl          = 300
+  managed_zone = var.dns_zone_name
+  rrdatas      = [google_compute_instance.webapp-vpc-instance.network_interface[0].access_config[0].nat_ip]
 }
