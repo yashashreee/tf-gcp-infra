@@ -127,3 +127,23 @@ variable "sql_db_instance_firwall_name" {
   description = "Name of the firewall rule denying internet access to the SQL DB instance."
   type        = string
 }
+
+variable "domain_name" {
+  description = "Name of the domain on which webapp will run."
+  type        = string
+}
+
+variable "dns_zone_name" {
+  description = "DNS public zone name."
+  type        = string
+}
+
+variable "vm_service_account_id" {
+  description = "VM service account ID."
+  type        = string
+}
+
+variable "vm_service_account_name" {
+  description = "VM service account name."
+  type        = string
+}
