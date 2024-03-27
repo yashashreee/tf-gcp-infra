@@ -134,10 +134,11 @@ resource "google_compute_instance" "webapp-vpc-instance" {
   }
 
   metadata = {
-    db_user = google_sql_user.webapp-db-user.name
-    db_pass = google_sql_user.webapp-db-user.password
-    db_host = google_sql_database_instance.webapp-cloudsql-instance.private_ip_address
-    db_name = google_sql_database.webapp-db.name
+    db_user      = google_sql_user.webapp-db-user.name
+    db_pass      = google_sql_user.webapp-db-user.password
+    db_host      = google_sql_database_instance.webapp-cloudsql-instance.private_ip_address
+    db_name      = google_sql_database.webapp-db.name
+    pubsub_topic = google_pubsub_topic.verify_email.name
   }
 
   metadata_startup_script = file("./startup.sh")
@@ -151,4 +152,66 @@ resource "google_dns_record_set" "webapp-dns-record" {
   ttl          = 300
   managed_zone = var.dns_zone_name
   rrdatas      = [google_compute_instance.webapp-vpc-instance.network_interface[0].access_config[0].nat_ip]
+}
+
+# Phb/Sub
+resource "google_pubsub_topic" "verify_email" {
+  name                       = var.pubsub_topic_name
+  message_retention_duration = "604800s"
+}
+
+resource "google_pubsub_subscription" "verify-email-subscription" {
+  name  = var.pubsub_subscription_name
+  topic = google_pubsub_topic.verify_email.name
+}
+
+# resource "google_pubsub_topic_iam_binding" "pubsub-topic-binding" {
+#   topic = google_pubsub_topic.verify_email.name
+#   role  = "roles/pubsub.publisher"
+
+#   members = [
+#      "serviceAccount:${var.tf_service_account}"
+#   ]
+# }
+
+resource "google_storage_bucket" "bucket" {
+  name     = var.source_archive_bucket_name
+  location = var.region
+}
+
+resource "google_storage_bucket_object" "archive" {
+  name   = "functions.zip"
+  bucket = google_storage_bucket.bucket.name
+  source = var.source_archive_object_path
+}
+
+resource "google_cloudfunctions_function" "send-verification-email" {
+  name    = var.cloudfunctions_function_name
+  region  = var.region
+  runtime = "nodejs20"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.archive.name
+  entry_point           = "subscribe"
+  trigger_http          = true
+  # environment_variables = {
+  #   PROJECT_ID                        = var.project_id
+  #   PUBSUB_SUBSCRIPTION               = google_pubsub_subscription.verify-email-subscription.name
+  #   CLOUDSQL_INSTANCE_CONNECTION_NAME = google_sql_database_instance.webapp-cloudsql-instance.name
+  #   DB_NAME                           = google_sql_database.webapp-db.name
+  #   DB_USER                           = google_sql_user.webapp-db-user.name
+  #   DB_PASS                           = google_sql_user.webapp-db-user.password
+  #   MAILGUN_API_KEY                   = var.mailgun_api_key
+  #   MAILGUN_DOMAIN                    = var.mailgun_domain
+  # }
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.send-verification-email.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
 }

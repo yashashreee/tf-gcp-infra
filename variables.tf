@@ -147,3 +147,38 @@ variable "vm_service_account_name" {
   description = "VM service account name."
   type        = string
 }
+
+variable "pubsub_topic_name" {
+  description = "Pub/Sub topic name."
+  type        = string
+}
+
+variable "pubsub_subscription_name" {
+  description = "Pub/Sub topic subscription name."
+  type        = string
+}
+
+variable "cloudfunctions_function_name" {
+  description = "Cloud funtions instance name"
+  type        = string
+}
+
+variable "source_archive_bucket_name" {
+  description = "Source archive bucket name"
+  type        = string
+}
+
+variable "source_archive_object_path" {
+  description = "Source archive object path"
+  type        = string
+}
+
+variable "mailgun_api_key" {
+  description = "Mailgun API key"
+  type        = string
+}
+
+variable "mailgun_domain" {
+  description = "Mailgun domain name"
+  type        = string
+}
