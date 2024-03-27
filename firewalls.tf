@@ -18,7 +18,7 @@ resource "google_compute_firewall" "deny-ssh-to-internet" {
   project = var.project_id
   network = google_compute_network.webapp-vpc.self_link
 
-  deny {
+  allow {
     protocol = "tcp"
     ports    = ["22"]
   }
@@ -48,7 +48,7 @@ resource "google_compute_firewall" "deny-internet-to-sql-db-instance" {
   project = var.project_id
   network = google_compute_network.webapp-vpc.self_link
 
-  deny {
+  allow {
     protocol = "tcp"
     ports    = ["3306"]
   }
