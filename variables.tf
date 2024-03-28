@@ -182,3 +182,18 @@ variable "mailgun_domain" {
   description = "Mailgun domain name"
   type        = string
 }
+
+variable "vpc_access_connector_name" {
+  description = "VPC access connector."
+  type        = string
+}
+
+variable "vpc_access_connector_name_cidr" {
+  description = "CIDR range for access connector."
+  type        = string
+}
+
+variable "cloud_function_sa_email" {
+  description = "Email for cloud function SA"
+  type        = string
+}
