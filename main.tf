@@ -20,6 +20,13 @@ resource "google_compute_subnetwork" "db" {
   network       = google_compute_network.webapp-vpc.self_link
 }
 
+resource "google_vpc_access_connector" "vpc-connector" {
+  name          = var.vpc_access_connector_name
+  region        = var.region
+  network       = google_compute_network.webapp-vpc.name
+  ip_cidr_range = var.vpc_access_connector_name_cidr
+}
+
 resource "google_compute_route" "default" {
   name             = var.route_name
   network          = google_compute_network.webapp-vpc.name
@@ -86,29 +93,6 @@ resource "random_password" "webapp-db-password" {
   override_special = "_%@"
 }
 
-resource "google_service_account" "vm_service_account" {
-  account_id   = var.vm_service_account_id
-  display_name = var.vm_service_account_name
-}
-
-resource "google_project_iam_binding" "service_account_roles" {
-  project = var.project_id
-  role    = "roles/logging.admin"
-
-  members = [
-    "serviceAccount:${google_service_account.vm_service_account.email}"
-  ]
-}
-
-resource "google_project_iam_binding" "service_account_roles_metric_writer" {
-  project = var.project_id
-  role    = "roles/monitoring.metricWriter"
-
-  members = [
-    "serviceAccount:${google_service_account.vm_service_account.email}"
-  ]
-}
-
 resource "google_compute_instance" "webapp-vpc-instance" {
   name         = var.instance_name
   machine_type = var.machine_type
@@ -165,15 +149,6 @@ resource "google_pubsub_subscription" "verify-email-subscription" {
   topic = google_pubsub_topic.verify_email.name
 }
 
-# resource "google_pubsub_topic_iam_binding" "pubsub-topic-binding" {
-#   topic = google_pubsub_topic.verify_email.name
-#   role  = "roles/pubsub.publisher"
-
-#   members = [
-#      "serviceAccount:${var.tf_service_account}"
-#   ]
-# }
-
 resource "google_storage_bucket" "bucket" {
   name     = var.source_archive_bucket_name
   location = var.region
@@ -193,25 +168,21 @@ resource "google_cloudfunctions_function" "send-verification-email" {
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.bucket.name
   source_archive_object = google_storage_bucket_object.archive.name
-  entry_point           = "subscribe"
-  trigger_http          = true
-  # environment_variables = {
-  #   PROJECT_ID                        = var.project_id
-  #   PUBSUB_SUBSCRIPTION               = google_pubsub_subscription.verify-email-subscription.name
-  #   CLOUDSQL_INSTANCE_CONNECTION_NAME = google_sql_database_instance.webapp-cloudsql-instance.name
-  #   DB_NAME                           = google_sql_database.webapp-db.name
-  #   DB_USER                           = google_sql_user.webapp-db-user.name
-  #   DB_PASS                           = google_sql_user.webapp-db-user.password
-  #   MAILGUN_API_KEY                   = var.mailgun_api_key
-  #   MAILGUN_DOMAIN                    = var.mailgun_domain
-  # }
-}
+  entry_point           = "sendVerificationLink"
+  event_trigger {
+    event_type = "google.pubsub.topic.publish"
+    resource   = google_pubsub_topic.verify_email.name
+  }
 
-resource "google_cloudfunctions_function_iam_member" "invoker" {
-  project        = var.project_id
-  region         = var.region
-  cloud_function = google_cloudfunctions_function.send-verification-email.name
+  environment_variables = {
+    CLOUDSQL_INSTANCE_CONNECTION_NAME = google_sql_database_instance.webapp-cloudsql-instance.connection_name
+    DB_NAME                           = google_sql_database.webapp-db.name
+    DB_USER                           = google_sql_user.webapp-db-user.name
+    DB_PASS                           = google_sql_user.webapp-db-user.password
+    MAILGUN_API_KEY                   = var.mailgun_api_key
+    MAILGUN_DOMAIN                    = var.mailgun_domain
+  }
 
-  role   = "roles/cloudfunctions.invoker"
-  member = "allUsers"
+  vpc_connector         = google_vpc_access_connector.vpc-connector.name
+  service_account_email = var.cloud_function_sa_email
 }
