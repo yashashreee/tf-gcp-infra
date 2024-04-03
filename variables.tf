@@ -53,7 +53,7 @@ variable "route_name" {
   type        = string
 }
 
-variable "instance_name" {
+variable "vm_instance_template_name" {
   description = "Name of the virtual machine instance."
   type        = string
 }
@@ -83,8 +83,8 @@ variable "custom_image" {
   type        = string
 }
 
-variable "global_address_name" {
-  description = "Name of the global IP address for webapp."
+variable "global_address_name_private_access" {
+  description = "Name of the global IP address for webapp private access"
   type        = string
 }
 
@@ -128,8 +128,8 @@ variable "sql_db_instance_firwall_name" {
   type        = string
 }
 
-variable "domain_name" {
-  description = "Name of the domain on which webapp will run."
+variable "fully_qualified_domain_name" {
+  description = "Fully qualified domain name"
   type        = string
 }
 
@@ -178,8 +178,8 @@ variable "mailgun_api_key" {
   type        = string
 }
 
-variable "mailgun_domain" {
-  description = "Mailgun domain name"
+variable "domain_name" {
+  description = "Your domain name"
   type        = string
 }
 
@@ -195,5 +195,38 @@ variable "vpc_access_connector_name_cidr" {
 
 variable "cloud_function_sa_email" {
   description = "Email for cloud function SA"
+  type        = string
+}
+
+variable "health_check_name" {
+  description = "Name of the webapp health check on /healthz"
+  type        = string
+}
+
+variable "autoscaler_name" {
+  description = "Name of the auto scaler"
+  type        = string
+}
+
+variable "group_manager_name" {
+  description = "Name of the instances group manager"
+  type        = string
+}
+
+variable "ssl_certi_name" {
+  description = "Name of SSL certificate"
+  type        = string
+}
+
+variable "backend_service_name" {
+  description = "Name of backend service"
+  type        = string
+}
+
+variable "url_map_name" { type = string }
+variable "target_https_proxy_name" { type = string }
+
+variable "global_address_name_load_balancer" {
+  description = "Global address name for webapp load balancer."
   type        = string
 }
