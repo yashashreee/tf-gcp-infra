@@ -6,7 +6,7 @@ resource "google_compute_firewall" "allow-webapp-to-lb" {
 
   allow {
     protocol = "tcp"
-    ports = ["443", "3306", "3000"]
+    ports    = ["443", "3306", "3000"]
   }
 
   target_tags = ["allow-health-check"]
