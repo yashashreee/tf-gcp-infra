@@ -7,6 +7,7 @@ DB_USER=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/comp
 DB_PASS=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/db_pass)
 DB_HOST=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/db_host)
 DB_NAME=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/db_name)
+DB_PORT=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/db_port)
 PUBSUB_TOPIC=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/pubsub_topic)
 
 
@@ -20,7 +21,7 @@ echo DB_NAME=$DB_NAME >> .env
 echo DB_USERNAME=$DB_USER >> .env
 echo DB_PASS=$DB_PASS >> .env
 echo PUBSUB_TOPIC=$PUBSUB_TOPIC >> .env
-echo PORT=3000 >> .env
+echo PORT=$DB_PORT >> .env
 echo DIALECT=mysql >> .env
 
 sudo mv /tmp/.env /opt/csye6225/webapp/

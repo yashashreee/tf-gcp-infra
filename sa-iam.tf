@@ -44,7 +44,6 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
   project        = var.project_id
   region         = var.region
   cloud_function = google_cloudfunctions_function.send-verification-email.name
-
-  role   = "roles/cloudfunctions.invoker"
-  member = "allUsers"
+  role           = "roles/cloudfunctions.invoker"
+  member         = "serviceAccount:${google_service_account.vm_service_account.email}"
 }
