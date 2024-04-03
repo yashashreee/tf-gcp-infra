@@ -190,7 +190,7 @@ resource "google_compute_region_instance_group_manager" "instances-group-manager
   }
 
   auto_healing_policies {
-    health_check = google_compute_health_check.webpp-health-check.id
+    health_check      = google_compute_health_check.webpp-health-check.id
     initial_delay_sec = 300
   }
 
