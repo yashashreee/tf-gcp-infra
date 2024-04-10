@@ -230,3 +230,23 @@ variable "global_address_name_load_balancer" {
   description = "Global address name for webapp load balancer."
   type        = string
 }
+
+variable "key_ring_name" {
+  description = "Key ring name in your region."
+  type        = string
+}
+
+variable "vm_key_name" {
+  description = "CMEK for Virtual Machine"
+  type        = string
+}
+
+variable "sql_key_name" {
+  description = "CMEK for Cloud SQL"
+  type        = string
+}
+
+variable "bucket_key_name" {
+  description = "CMEK for Cloud Storage"
+  type        = string
+}

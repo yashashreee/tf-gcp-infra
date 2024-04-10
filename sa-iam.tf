@@ -47,3 +47,58 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
   role           = "roles/cloudfunctions.invoker"
   member         = "serviceAccount:${google_service_account.vm_service_account.email}"
 }
+
+resource "google_project_service_identity" "gcp_sa_cloud_sql" {
+  provider = google-beta
+  service  = "sqladmin.googleapis.com"
+}
+
+resource "google_kms_crypto_key_iam_binding" "sql_crypto_key" {
+  provider      = google-beta
+  crypto_key_id = google_kms_crypto_key.cloudsql-encryption-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = [
+    "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
+     "serviceAccount:${google_service_account.vm_service_account.email}"
+  ]
+}
+
+resource "google_project_service_identity" "compute_engine_admin_key" {
+  provider = google-beta
+  service  = "compute.googleapis.com"
+}
+
+resource "google_kms_crypto_key_iam_binding" "vm_crypto_key" {
+  crypto_key_id = google_kms_crypto_key.vm-encryption-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = [
+    "serviceAccount:${google_project_service_identity.compute_engine_admin_key.email}",
+    "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
+    "serviceAccount:${google_service_account.vm_service_account.email}"
+  ]
+}
+
+data "google_storage_project_service_account" "gcp_sa_storage" {}
+
+resource "google_kms_crypto_key_iam_binding" "gcs_crypto_key" {
+  crypto_key_id = google_kms_crypto_key.gcs-encryption-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = [
+     "serviceAccount:${google_service_account.vm_service_account.email}",
+    "serviceAccount:${data.google_storage_project_service_account.gcp_sa_storage.email_address}",
+    "serviceAccount:${var.cloud_function_sa_email}",
+  ]
+}
+
+# resource "google_kms_crypto_key_iam_binding" "gcs_object_crypto_key" {
+#   crypto_key_id = google_kms_crypto_key.gcs-encryption-key.id
+#   role          = "roles/storage.objectAdmin"
+
+#   members = [
+#     "serviceAccount:${data.google_storage_project_service_account.gcp_sa_storage.email_address}",
+#     "serviceAccount:${var.cloud_function_sa_email}",
+#   ]
+# }

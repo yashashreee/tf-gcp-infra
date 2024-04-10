@@ -49,8 +49,47 @@ resource "google_service_networking_connection" "webapp-vpc-private-connection" 
   reserved_peering_ranges = [google_compute_global_address.webapp-private-ip-alloc.name]
 }
 
+resource "google_kms_key_ring" "webapp-key-ring" {
+  provider = google-beta
+  name     = var.key_ring_name
+  location = var.region
+}
+
+resource "google_kms_crypto_key" "vm-encryption-key" {
+  name            = var.vm_key_name
+  key_ring        = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.key_ring_name}"
+  rotation_period = "2592000s"
+  purpose         = "ENCRYPT_DECRYPT"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "google_kms_crypto_key" "cloudsql-encryption-key" {
+  name            = var.sql_key_name
+  key_ring        = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.key_ring_name}"
+  rotation_period = "2592000s"
+  purpose         = "ENCRYPT_DECRYPT"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "google_kms_crypto_key" "gcs-encryption-key" {
+  name            = var.bucket_key_name
+  key_ring        = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.key_ring_name}"
+  rotation_period = "2592000s"
+  purpose         = "ENCRYPT_DECRYPT"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "google_compute_region_instance_template" "webapp-vm-instance-template" {
-  name_prefix  = var.vm_instance_template_name
+  name         = "${var.vm_instance_template_name}-${formatdate("YYYYMMDDHHmmss", timestamp())}"
   machine_type = var.machine_type
   tags         = ["allow-health-check", "webapp-vm-template"]
 
@@ -60,6 +99,10 @@ resource "google_compute_region_instance_template" "webapp-vm-instance-template"
     disk_type    = "pd-balanced"
     boot         = true
     auto_delete  = true
+
+    disk_encryption_key {
+      kms_key_self_link = google_kms_crypto_key.vm-encryption-key.id
+    }
   }
 
   network_interface {
@@ -114,8 +157,15 @@ resource "google_pubsub_subscription" "verify-email-subscription" {
 }
 
 resource "google_storage_bucket" "bucket" {
-  name     = var.source_archive_bucket_name
-  location = var.region
+  name          = var.source_archive_bucket_name
+  location      = var.region
+  force_destroy = true
+
+  encryption {
+    default_kms_key_name = google_kms_crypto_key.gcs-encryption-key.id
+  }
+
+  depends_on = [google_kms_crypto_key_iam_binding.gcs_crypto_key]
 }
 
 resource "google_storage_bucket_object" "archive" {
