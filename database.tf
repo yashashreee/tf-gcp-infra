@@ -22,6 +22,8 @@ resource "google_sql_database_instance" "webapp-cloudsql-instance" {
       enabled            = true
     }
   }
+
+  encryption_key_name = google_kms_crypto_key.cloudsql-encryption-key.id
 }
 
 resource "google_sql_database" "webapp-db" {
