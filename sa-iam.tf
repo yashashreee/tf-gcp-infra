@@ -60,7 +60,7 @@ resource "google_kms_crypto_key_iam_binding" "sql_crypto_key" {
 
   members = [
     "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
-     "serviceAccount:${google_service_account.vm_service_account.email}"
+    "serviceAccount:${google_service_account.vm_service_account.email}"
   ]
 }
 
@@ -87,7 +87,7 @@ resource "google_kms_crypto_key_iam_binding" "gcs_crypto_key" {
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 
   members = [
-     "serviceAccount:${google_service_account.vm_service_account.email}",
+    "serviceAccount:${google_service_account.vm_service_account.email}",
     "serviceAccount:${data.google_storage_project_service_account.gcp_sa_storage.email_address}",
     "serviceAccount:${var.cloud_function_sa_email}",
   ]
